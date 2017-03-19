@@ -110,7 +110,6 @@ This code may be used under the terms found in LICENSE.md of this repository.
       * The element is automatically closed.
       */
       [click](e) {
-        console.log('click', e)
         if (this.tagName === e.target.tagName && this.allowCancel) {
           e.preventDefault()
           e.stopPropagation()
