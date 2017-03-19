@@ -4,13 +4,23 @@ Copyright (c) 2017 Ars Nebula LLC.
 This code may be used under the terms found in LICENSE.md of this repository.
 -->
 
-<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="../nebula-element-mixin/nebula-element-mixin.html">
 
 <script>
 (function() {
   window.Nebula = window.Nebula || {}
 
-  var KEY_ESC = 27
+  /**
+  * Symbols for private methods and properties.
+  */
+  const transitionEnd = Symbol()
+  const click = Symbol()
+  const keyDown = Symbol()
+  const opened = Symbol()
+  const isAppended = Symbol()
+  const activeElement = Symbol()
+
+  const KEY_ESC = 27
 
   /**
   * `Nebula.DialogBehavior` is a Polymer behavior to support building custom dialog elements.
@@ -39,148 +49,173 @@ This code may be used under the terms found in LICENSE.md of this repository.
   * @polymerBehavior
   * @demo demo/index.html
   */
-  Nebula.DialogBehavior = {
-    /**
-    * Event triggered when element opening animation is complete.
-    * @event opened
-    */
-    /**
-    * Event triggered when element closing animation is complete.
-    * @event closed
-    */ 
-    properties: {
-      /**
-      * Indicates if the dialog can be canceled.
-      * If enabled, dialogs can be cancelled by clicking the backdrop or pressing the ESC key.
-      */
-      allowCancel: {
-        type: Boolean,
-        value: true
-      },
-      /**
-      * Indicates if the dialog is open.
-      */
-      opened: {
-        type: Boolean,
-        reflectToAttribute: true,
-        notify: true,
-        value: false
-      },
-      /**
-      * A value indicating how the dialog was closed.
-      * If the dialog was cancelled, the value will be `undefined`.
-      */
-      result: {
-        type: Object,
-        notify: true
-      }
-    },
-    observers: [
-      '__dialogOnOpenedChanged(opened)'
-    ],
-    listeners: {
-      'transitionend': '__dialogOnTransitionEnd',
-      'tap': '__dialogOnTap'
-    },
-    /**
-    * Lifecycle handler triggered when a key is pressed down.
-    * The handler is added and removed automatically when a element is opened and closed.
-    */ 
-    __dialogOnKeyDown: function(e) {
-      var key = e.keyCode || e.which
-      if (key === KEY_ESC && this.allowCancel) {
-        e.preventDefault()
-        e.stopPropagation()
-        this.cancel()
-      }
-    },
-    /**
-    * Event handler triggered when the user taps the base element backdrop.
-    * The element is automatically closed.
-    */
-    __dialogOnTap: function(e) {
-      if (this.tagName === e.target.tagName && this.allowCancel) {
-        e.preventDefault()
-        e.stopPropagation()
-        this.cancel()
-      }
-    },
-    /**
-    * Event handler triggered when opening and closing animation is complete.
-    */
-    __dialogOnTransitionEnd: function(e) {
-      if (e.propertyName === 'opacity') {
-        if (this.opened) {
-          this.fire('opened', null, {bubbles: false})
-        } else {
-          this.fire('closed', null, {bubbles: false})
-        }
-      }
-    },
-    /**
-    * Property observer triggered when the value of `opened` is changed.
-    */
-    __dialogOnOpenedChanged: function(opened) {
-      if (opened === void(0)) return
-      if (opened) {
-        this.__dialogActiveElement = document.activeElement
-        this.set('result', void(0))
-        this.listen(document.body, 'keydown', '__dialogOnKeyDown')
-      } else {
-        if (this.__dialogActiveElement) this.__dialogActiveElement.focus()
-        this.unlisten(document.body, 'keydown', '__dialogOnKeyDown')
-      }
-    },
-    /**
-    * Cancels the element.
-    * The result is set to `undefined`.
-    */
-    cancel: function() {
-      if (this.opened) {
-        this.set('result', void(0))
-        this.set('opened', false)
-      }
-    },
-    /**
-    * Closes the dialog with the specified result.
-    */
-    close: function(result) {
-      if (this.opened) {
-        this.set('result', result)
-        this.set('opened', false)
-      }
-    },
-    /**
-    * Displays the element.
-    * A promise is returned that will resolve when the element has been closed.
-    */
-    show: function() {
-      return new Promise(function(resolve) {
-        // add element to document body if not parent
-        if (!this.parentNode) {
-          this.__dialogAppended = true
-          document.body.appendChild(this)
-        }
+  Nebula.DialogBehavior = Polymer.dedupingMixin(function(base) {
+    return class extends Nebula.ElementMixin(base) {
+      
+      static get properties() {
+        return {
+          /**
+          * Indicates if the dialog can be canceled.
+          * If enabled, dialogs can be cancelled by clicking the backdrop or pressing the ESC key.
+          */
+          allowCancel: {
+            type: Boolean,
+            value: true
+          },
 
-        // listen for our own closed event and resolve promise
-        var handler = function() {
-          this.removeEventListener('closed', handler)
-          if (this.__dialogAppended) {
-            this.__dialogAppended = false
-            document.body.removeChild(this)
+          /**
+          * Indicates if the dialog is open.
+          */
+          opened: {
+            type: Boolean,
+            reflectToAttribute: true,
+            notify: true,
+            value: false,
+            observer: '__dialogOpenedChanged'
+          },
+
+          /**
+          * A value indicating how the dialog was closed.
+          * If the dialog was cancelled, the value will be `undefined`.
+          */
+          result: {
+            type: Object,
+            notify: true
+          }          
+        }
+      }
+
+      ready() {
+        super.ready()
+        this.setAttribute('role', 'alert')
+        this.listen(this, 'click', this[click])
+        this.listen(this, 'transitionend', this[transitionEnd])
+      }
+
+      /**
+      * Lifecycle handler triggered when a key is pressed down.
+      * The handler is added and removed automatically when a element is opened and closed.
+      */ 
+      [keyDown](e) {
+        var key = e.keyCode || e.which
+        if (key === KEY_ESC && this.allowCancel) {
+          e.preventDefault()
+          e.stopPropagation()
+          this.cancel()
+        }
+      }
+
+      /**
+      * Event handler triggered when the user taps the base element backdrop.
+      * The element is automatically closed.
+      */
+      [click](e) {
+        console.log('click', e)
+        if (this.tagName === e.target.tagName && this.allowCancel) {
+          e.preventDefault()
+          e.stopPropagation()
+          this.cancel()
+        }
+      }
+
+      /**
+      * Event handler triggered when opening and closing animation is complete.
+      */
+      [transitionEnd](e) {
+        if (e.propertyName === 'opacity') {
+          if (this.opened) {
+            this.dispatchEvent(new CustomEvent('opened', {bubbles: false}))
+          } else {
+            this.dispatchEvent(new CustomEvent('closed', {bubbles: false}))
           }
-          resolve(this.result) 
-        }.bind(this)
+        }
+      }
 
-        this.addEventListener('closed', handler)
+      /**
+      * Property observer triggered when the value of `opened` is changed.
+      */
+      __dialogOpenedChanged(opened) {
+        if (opened === void(0)) return
+        if (opened) {
+          this[activeElement] = document.activeElement
+          this.set('result', void(0))
+          this.listen(document.body, 'keydown', this[keyDown])
+        } else {
+          if (this[activeElement]) {
+            this[activeElement].focus()
+            delete this[activeElement]
+          }
+          this.unlisten(document.body, 'keydown')
+        }
+      }
 
-        // open the element in a timeout closure to accomodate for animation
-        // when appending new element
-        setTimeout(function() {
-          this.set('opened', true)
-        }.bind(this))
-      }.bind(this))
-    }  
-  }
+      /**
+      * Cancels the element.
+      * The result is set to `undefined`.
+      */
+      cancel() {
+        if (this.opened) {
+          this.setProperties({
+            result: void(0),
+            opened: false
+          })
+        }
+      }
+
+      /**
+      * Closes the dialog with the specified result.
+      */
+      close(result) {
+        if (this.opened) {
+          this.setProperties({
+            result: result,
+            opened: false
+          })
+        }
+      }
+
+      /**
+      * Displays the element.
+      * A promise is returned that will resolve when the element has been closed.
+      */
+      show() {
+        return new Promise((resolve) => {
+          // add element to document body if not parent
+          if (!this.parentNode) {
+            this[isAppended] = true
+            document.body.appendChild(this)
+          }
+
+          // listen for our own closed event and resolve promise
+          const handler = () => {
+            this.unlisten(this, 'closed')
+            if (this[isAppended]) {
+              this[isAppended] = false
+              document.body.removeChild(this)
+            }
+            resolve(this.result) 
+          }
+          this.listen(this, 'closed', handler)
+
+          // open the element in a timeout closure to accomodate for animation
+          // when appending new element
+          setTimeout(() => {
+            this.set('opened', true)
+          })
+        })
+      } 
+
+      /**
+      * Event triggered when element opening animation is complete.
+      * @event opened
+      */
+
+      /**
+      * Event triggered when element closing animation is complete.
+      * @event closed
+      */
+    }
+
+  })
 }())
 </script>

@@ -5,13 +5,12 @@
     <title>nebula-dialog</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1, user-scalable=yes">
-    <script src="../../webcomponentsjs/webcomponents-lite.js"></script>
-    <link rel="import" href="../../promise-polyfill/promise-polyfill-lite.html">
+    <script src="../../webcomponentsjs/webcomponents-loader.js"></script>
     <link rel="import" href="../../iron-demo-helpers/demo-pages-shared-styles.html">
     <link rel="import" href="../../iron-demo-helpers/demo-snippet.html">
     <link rel="import" href="../nebula-dialog.html">
     <custom-style>
-      <style is="custom-style" include="demo-pages-shared-styles">
+      <style include="demo-pages-shared-styles">
         #alert {
           background-color: black;
           color: white;
@@ -49,32 +48,38 @@
     <div class="vertical-section-container">
       <h3>Dialog</h3>
       <demo-snippet>
-        <template is="dom-bind" id="demo">
-          <nebula-dialog id="dialog">
-            <div id="alert">
-              <div title>Alert</div>
-              <div message>Would you like to start a dialog?</div>
-              <div buttons>
-                <button on-tap="close">OK</button>
-              </div>
-            </div>
-          </nebula-dialog>
-          <button on-tap="show">Show Dialog</button>
+        <template>
+          <dom-bind id="demo">
+            <template>
+              <nebula-dialog id="dialog">
+                <div id="alert">
+                  <div title>Alert</div>
+                  <div message>Would you like to start a dialog?</div>
+                  <div buttons>
+                    <button on-click="close">OK</button>
+                  </div>
+                </div>
+              </nebula-dialog>
+              <button on-click="show">Show Dialog</button>
+            </template>
+          </dom-bind>        
         </template>
-        <script>
-          demo.close = function(e) {
-            var dialogEl = document.getElementById('dialog')
-            dialogEl.close('ok')
-          }
-          demo.show = function(e) {
-            var dialogEl = document.getElementById('dialog')
-            dialogEl.show().then(function(result) {
-              console.log('The dialog has been closed', result)
-            })
-          }
-        </script>
       </demo-snippet>
     </div>
+
+    <script>
+      demo.close = function(e) {
+        var dialogEl = document.getElementById('dialog')
+        dialogEl.close('ok')
+      }
+      demo.show = function(e) {
+        console.log('show')
+        var dialogEl = document.getElementById('dialog')
+        dialogEl.show().then(function(result) {
+          console.log('The dialog has been closed', result)
+        })
+      }
+    </script>
 
   </body>
 </html>

@@ -4,7 +4,9 @@ Copyright (c) 2017 Ars Nebula LLC.
 This code may be used under the terms found in LICENSE.md of this repository.
 -->
 
-<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="../shadycss/apply-shim.html">
+<link rel="import" href="../polymer/polymer-element.html">
+<link rel="import" href="../nebula-element-mixin/nebula-element-mixin.html">
 <link rel="import" href="nebula-dialog-styles.html">
 <link rel="import" href="nebula-dialog-behavior.html">
 
@@ -70,11 +72,14 @@ Custom property | Description
     </div>
   </template>
   <script>
-    Polymer({
-      is: 'nebula-dialog',
-      behaviors: [
-        Nebula.DialogBehavior
-      ]
-    })
+  (function() {
+    'use strict'
+
+    class NebulaDialog extends Nebula.DialogBehavior(Nebula.ElementMixin(Polymer.Element)) {
+      static get is() { return 'nebula-dialog' }
+    }
+    
+    customElements.define(NebulaDialog.is, NebulaDialog)
+  }())
   </script>
 </dom-module>
