@@ -89,7 +89,7 @@ This code may be used under the terms found in LICENSE.md of this repository.
       ready() {
         super.ready()
         this.setAttribute('role', 'alert')
-        this.observe('opened', ['opened'], this[onOpenedChanged])
+        this.observe('opened',  this[onOpenedChanged])
         this.listen(this, 'click', this[onClick])
         this.listen(this, 'transitionend', this[onTransitionEnd])
       }
