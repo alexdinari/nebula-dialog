@@ -4,6 +4,7 @@ Copyright (c) 2017 Ars Nebula LLC.
 This code may be used under the terms found in LICENSE.md of this repository.
 -->
 
+<link rel="import" href="../polymer/polymer-element.html">
 <link rel="import" href="../nebula-element-mixin/nebula-element-mixin.html">
 
 <script>
@@ -13,9 +14,10 @@ This code may be used under the terms found in LICENSE.md of this repository.
   /**
   * Symbols for private methods and properties.
   */
-  const transitionEnd = Symbol()
-  const click = Symbol()
-  const keyDown = Symbol()
+  const onTransitionEnd = Symbol()
+  const onClick = Symbol()
+  const onKeyDown = Symbol()
+  const onOpenedChanged = Symbol()
   const opened = Symbol()
   const isAppended = Symbol()
   const activeElement = Symbol()
@@ -70,8 +72,7 @@ This code may be used under the terms found in LICENSE.md of this repository.
             type: Boolean,
             reflectToAttribute: true,
             notify: true,
-            value: false,
-            observer: '__dialogOpenedChanged'
+            value: false
           },
 
           /**
@@ -88,19 +89,19 @@ This code may be used under the terms found in LICENSE.md of this repository.
       ready() {
         super.ready()
         this.setAttribute('role', 'alert')
-        this.listen(this, 'click', this[click])
-        this.listen(this, 'transitionend', this[transitionEnd])
+        this.observe('opened', ['opened'], this[onOpenedChanged])
+        this.listen(this, 'click', this[onClick])
+        this.listen(this, 'transitionend', this[onTransitionEnd])
       }
 
       /**
       * Lifecycle handler triggered when a key is pressed down.
       * The handler is added and removed automatically when a element is opened and closed.
       */ 
-      [keyDown](e) {
+      [onKeyDown](e) {
         var key = e.keyCode || e.which
         if (key === KEY_ESC && this.allowCancel) {
           e.preventDefault()
-          e.stopPropagation()
           this.cancel()
         }
       }
@@ -109,7 +110,7 @@ This code may be used under the terms found in LICENSE.md of this repository.
       * Event handler triggered when the user taps the base element backdrop.
       * The element is automatically closed.
       */
-      [click](e) {
+      [onClick](e) {
         if (this.tagName === e.target.tagName && this.allowCancel) {
           e.preventDefault()
           e.stopPropagation()
@@ -120,12 +121,12 @@ This code may be used under the terms found in LICENSE.md of this repository.
       /**
       * Event handler triggered when opening and closing animation is complete.
       */
-      [transitionEnd](e) {
+      [onTransitionEnd](e) {
         if (e.propertyName === 'opacity') {
           if (this.opened) {
-            this.dispatchEvent(new CustomEvent('opened', {bubbles: false}))
+            this.fire('opened')
           } else {
-            this.dispatchEvent(new CustomEvent('closed', {bubbles: false}))
+            this.fire('closed')
           }
         }
       }
@@ -133,12 +134,12 @@ This code may be used under the terms found in LICENSE.md of this repository.
       /**
       * Property observer triggered when the value of `opened` is changed.
       */
-      __dialogOpenedChanged(opened) {
+      [onOpenedChanged](opened) {
         if (opened === void(0)) return
         if (opened) {
           this[activeElement] = document.activeElement
           this.set('result', void(0))
-          this.listen(document.body, 'keydown', this[keyDown])
+          this.listen(document.body, 'keydown', this[onKeyDown])
         } else {
           if (this[activeElement]) {
             this[activeElement].focus()

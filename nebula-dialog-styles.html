@@ -4,7 +4,7 @@ Copyright (c) 2017 Ars Nebula LLC.
 This code may be used under the terms found in LICENSE.md of this repository.
 -->
 
-<link rel="import" href="../polymer/lib/elements/dom-module.html">
+<link rel="import" href="../polymer/polymer-element.html">
 
 <!--
 A stylesheet to use when building your own custom dialogs with `nebula-dialog-behavior`. The styles expect you to have a container element representing your dialog content with an id of `dialog`.
@@ -34,16 +34,12 @@ A stylesheet to use when building your own custom dialogs with `nebula-dialog-be
     <style>
       :host {
         position: fixed;
-        display: -ms-flexbox;
         display: -webkit-flex;
         display: flex;
-        -ms-flex-direction: column;
         -webkit-flex-direction: column;
         flex-direction: column;        
-        -ms-flex-align: center;
         -webkit-align-items: center;
         align-items: center;        
-        -ms-flex-pack: center;
         -webkit-justify-content: center;
         justify-content: center;        
         top: 0;

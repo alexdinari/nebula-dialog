@@ -69,12 +69,11 @@
 
     <script>
       demo.close = function(e) {
-        var dialogEl = document.getElementById('dialog')
+        const dialogEl = document.getElementById('dialog')
         dialogEl.close('ok')
       }
       demo.show = function(e) {
-        console.log('show')
-        var dialogEl = document.getElementById('dialog')
+        const dialogEl = document.getElementById('dialog')
         dialogEl.show().then(function(result) {
           console.log('The dialog has been closed', result)
         })

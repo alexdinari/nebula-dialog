@@ -25,7 +25,7 @@
   ],
   "main": "nebula-dialog.html",
   "dependencies": {
-    "polymer": "Polymer/polymer#2.0.0-rc.2",
+    "polymer": "Polymer/polymer#^2.0.0-rc.1",
     "nebula-element-mixin": "arsnebula/nebula-element-mixin"
   },
   "devDependencies": {
